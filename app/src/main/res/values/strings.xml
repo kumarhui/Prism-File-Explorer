@@ -209,6 +209,7 @@
     <string name="uppercase_all">UPPERCASE ALL</string>
     <string name="preview">Preview</string>
     <string name="rename_files">Rename Files</string>
+    <string name="pdf_unlocker">PDF Unlocker</string>
 
     <string name="convert_to_pdf">Convert to PDF</string>
     <string name="convert_to_image">Convert to Image</string>

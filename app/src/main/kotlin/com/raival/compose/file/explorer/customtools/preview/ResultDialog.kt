@@ -455,7 +455,7 @@ class MultiResultDialog : DialogFragment() {
     private var titleText = "Results"
 
     private var idLayout =
-        IdCardLayoutEngine.Layout.STACKED
+        IdCardLayoutEngine.Layout.TOP_ROW
 
     companion object {
 
@@ -583,7 +583,7 @@ class MultiResultDialog : DialogFragment() {
             IdCardLayoutEngine.Layout.entries.getOrElse(
                 layoutIndex
             ) {
-                IdCardLayoutEngine.Layout.STACKED
+                IdCardLayoutEngine.Layout.TOP_ROW
             }
 
         titleText =
@@ -1675,3 +1675,4 @@ private fun generateIdCardSheets(
 
     return outputs
 }
+

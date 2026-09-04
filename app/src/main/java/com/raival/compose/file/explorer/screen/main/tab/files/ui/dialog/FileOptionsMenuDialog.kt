@@ -1,5 +1,6 @@
-package com.raival.compose.file.explorer.screen.main.tab.files.ui.dialog
+﻿package com.raival.compose.file.explorer.screen.main.tab.files.ui.dialog
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Message
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material.icons.rounded.Compress
@@ -57,6 +59,7 @@ import com.raival.compose.file.explorer.common.toJson
 import com.raival.compose.file.explorer.common.ui.BottomSheetDialog
 import com.raival.compose.file.explorer.common.ui.Space
 import com.raival.compose.file.explorer.customtools.CustomToolRunner
+import com.raival.compose.file.explorer.customtools.pdfunlocker.PdfUnlockerDialog
 import com.raival.compose.file.explorer.customtools.preview.CustomRenameDialog
 import com.raival.compose.file.explorer.customtools.preview.PrintPreviewDialog
 import com.raival.compose.file.explorer.customtools.preview.WhatsAppPreviewDialog
@@ -75,6 +78,7 @@ import com.raival.compose.file.explorer.screen.main.tab.files.task.CompressTask
 import com.raival.compose.file.explorer.screen.main.tab.files.task.CopyTask
 import com.raival.compose.file.explorer.screen.main.tab.files.ui.FileIcon
 import com.raival.compose.file.explorer.screen.main.tab.files.ui.ItemRow
+import java.io.File
 
 @Composable
 fun FileOptionsMenuDialog(
@@ -302,89 +306,127 @@ fun FileOptionsMenuDialog(
                     }
                 }
             }
+            // PDF Unlocker — only for exactly one PDF file
+            val singlePdfFile =
+                selectedFilesCount == 1 &&
+                        targetContentHolder is LocalFileHolder &&
+                        targetContentHolder.file.extension.equals("pdf", ignoreCase = true)
 
-            FileOption(
-                Icons.Rounded.Badge,
-                stringResource(R.string.passport_photo_maker)
+            if (singlePdfFile) {
+                FileOption(
+                    Icons.Default.LockOpen,
+                    stringResource(R.string.pdf_unlocker)
+                ) {
+                    onDismissRequest()
+
+                    PdfUnlockerDialog.show(
+                        context,
+                        Uri.fromFile(targetContentHolder.file)
+                    )
+                }
+}
+
+            // Passport Photo Maker — only for image files, never PDFs
+            val passportImageFiles = targetFiles
+                .filterIsInstance<LocalFileHolder>()
+                .filter {
+                    it.file.extension.lowercase() in setOf(
+                        "jpg", "jpeg", "png", "webp"
+                    )
+                }
+
+            if (passportImageFiles.isNotEmpty() &&
+                passportImageFiles.size == targetFiles.size
             ) {
-                onDismissRequest()
-                val paths = targetFiles
-                    .filterIsInstance<LocalFileHolder>()
-                    .map { it.uniquePath }
-                    .filter { it.substringAfterLast('.', "").lowercase() in setOf("jpg", "jpeg", "png", "webp") }
-                if (paths.isNotEmpty()) {
-                    PassportPhotoConfigDialog.show(context, paths)
+                FileOption(
+                    Icons.Rounded.Badge,
+                    stringResource(R.string.passport_photo_maker)
+                ) {
+                    onDismissRequest()
+
+                    PassportPhotoConfigDialog.show(
+                        context,
+                        passportImageFiles.map { it.uniquePath }
+                    )
                 }
             }
 
-            FileOption(
-                Icons.Rounded.PictureAsPdf,
-                stringResource(R.string.convert_to_pdf)
+            // Convert to PDF — only when selected files are images
+            val selectedImageFiles = targetFiles
+                .filterIsInstance<LocalFileHolder>()
+                .filter {
+                    it.file.extension.lowercase() in setOf(
+                        "jpg", "jpeg", "png", "webp"
+                    )
+                }
+
+            val selectedPdfFiles = targetFiles
+                .filterIsInstance<LocalFileHolder>()
+                .filter {
+                    it.file.extension.equals("pdf", ignoreCase = true)
+                }
+
+            if (selectedImageFiles.isNotEmpty() &&
+                selectedPdfFiles.isEmpty() &&
+                selectedImageFiles.size == targetFiles.size
             ) {
-                Log.d("CUSTOM_DEBUG", "PDF: clicked")
-
-                onDismissRequest()
-
-                val paths = targetFiles
-                    .filterIsInstance<LocalFileHolder>()
-                    .map { it.uniquePath }
-
-                Log.d("CUSTOM_DEBUG", "PDF: paths = $paths")
-
-                if (paths.isNotEmpty()) {
-                    Log.d("CUSTOM_DEBUG", "PDF: calling showPdf")
+                FileOption(
+                    Icons.Rounded.PictureAsPdf,
+                    stringResource(R.string.convert_to_pdf)
+                ) {
+                    onDismissRequest()
 
                     ImageConversionDialog.showPdf(
                         context,
-                        paths
+                        selectedImageFiles.map { it.uniquePath }
                     )
-
-                    Log.d("CUSTOM_DEBUG", "PDF: showPdf returned")
-                } else {
-                    Log.d("CUSTOM_DEBUG", "PDF: NO PATHS")
                 }
             }
 
-            FileOption(
-                Icons.Rounded.Image,
-                stringResource(R.string.convert_to_image)
+            // Convert to Image — only when selected files are PDFs
+            val selectedPdfFilesForImage = targetFiles
+                .filterIsInstance<LocalFileHolder>()
+                .filter {
+                    it.file.extension.equals("pdf", ignoreCase = true)
+                }
+
+            if (selectedPdfFilesForImage.isNotEmpty() &&
+                selectedPdfFilesForImage.size == targetFiles.size
             ) {
-                onDismissRequest()
+                FileOption(
+                    Icons.Rounded.Image,
+                    stringResource(R.string.convert_to_image)
+                ) {
+                    onDismissRequest()
 
-                val paths = targetFiles
-                    .filterIsInstance<LocalFileHolder>()
-                    .map { it.uniquePath }
-
-                val pdfPaths = paths.filter {
-                    it.substringAfterLast('.', "").equals("pdf", ignoreCase = true)
-                }
-                val imagePaths = paths.filter {
-                    it.substringAfterLast('.', "").lowercase() in setOf("jpg", "jpeg", "png", "webp")
-                }
-                when {
-                    pdfPaths.isNotEmpty() -> PdfPageExtractionDialog.show(context, pdfPaths)
-                    imagePaths.isNotEmpty() -> ImageConversionDialog.showImage(context, imagePaths)
+                    PdfPageExtractionDialog.show(
+                        context,
+                        selectedPdfFilesForImage.map { it.uniquePath }
+                    )
                 }
             }
 
-            FileOption(
-                Icons.Rounded.Badge,
-                stringResource(R.string.id_card_maker)
+            // ID Card Maker — only for image files, never PDFs
+            val idCardImageFiles = targetFiles
+                .filterIsInstance<LocalFileHolder>()
+                .filter {
+                    it.file.extension.lowercase() in setOf(
+                        "jpg", "jpeg", "png", "webp"
+                    )
+                }
+
+            if (idCardImageFiles.isNotEmpty() &&
+                idCardImageFiles.size == targetFiles.size
             ) {
-                Log.d("CUSTOM_DEBUG", "ID CARD: clicked")
+                FileOption(
+                    Icons.Rounded.Badge,
+                    stringResource(R.string.id_card_maker)
+                ) {
+                    onDismissRequest()
 
-                onDismissRequest()
-
-                val paths = targetFiles
-                    .filterIsInstance<LocalFileHolder>()
-                    .map { it.uniquePath }
-
-                Log.d("CUSTOM_DEBUG", "ID CARD: paths = $paths")
-
-                if (paths.isNotEmpty()) {
                     CustomToolRunner.createIdCards(
                         context,
-                        paths
+                        idCardImageFiles.map { it.uniquePath }
                     )
                 }
             }
@@ -550,3 +592,8 @@ fun FileOption(
         )
     }
 }
+
+
+
+
+

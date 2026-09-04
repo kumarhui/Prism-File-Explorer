@@ -50,6 +50,9 @@ android {
 }
 
 dependencies {
+
+
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
     "baselineProfile"(project(":baselineprofile"))
     implementation(libs.androidx.profileinstaller)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
