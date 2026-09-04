@@ -1,4 +1,4 @@
-<resources>
+﻿<resources>
     <string name="app_name">Prism File Explorer</string>
     <string name="root_dir">Root</string>
     <string name="internal_storage">Internal Storage</string>
@@ -11,7 +11,7 @@
     <string name="invalid_path">Invalid path</string>
     <string name="new_tab">New Tab</string>
     <string name="recycle_bin">Recycle bin</string>
-    <string name="saving">Saving…</string>
+    <string name="saving">Savingâ€¦</string>
     <string name="warning">Warning</string>
     <string name="save_files_before_exit_warning_message">Some files in the text editor are not saved. Do you want to save them now?</string>
     <string name="ignore">Ignore</string>
@@ -115,7 +115,7 @@
     <string name="file_no_longer_exists">File no longer exists</string>
     <string name="move">Move</string>
     <string name="preparing">Preparing</string>
-    <string name="deleting_source_files">Deleting source files…</string>
+    <string name="deleting_source_files">Deleting source filesâ€¦</string>
     <string name="copy">Copy</string>
     <string name="deleting">Deleting</string>
     <string name="compressing">Compressing</string>
@@ -176,7 +176,7 @@
     <string name="no_recent_files">No Recent Files</string>
     <string name="remember_this_choice">Remember this choice</string>
     <string name="root">Root</string>
-    <string name="counting_files">Counting files…</string>
+    <string name="counting_files">Counting filesâ€¦</string>
     <string name="copying">Copying</string>
     <string name="file_already_exists">File %1$s already exists in destination folder.</string>
     <string name="hide">Hide</string>
@@ -195,7 +195,7 @@
     <string name="open_created_folder">Create and open</string>
     <string name="renaming">"Renaming"</string>
     <string name="batch_rename">Batch Rename</string>
-    <string name="print">Print</string>
+    <string name="print">Print With Nokoprint</string>
     <string name="send_to_whatsapp">Send to WhatsApp</string>
     <string name="passport_photo_maker">Passport Photo Maker</string>
     <string name="powershell">PowerShell</string>
@@ -216,7 +216,7 @@
     <string name="number_increment">Number increment</string>
     <string name="zero_number_increment">Zero-padded number increment</string>
     <string name="find_n_replace">Find and replace</string>
-    <string name="batch_rename_info"><![CDATA[{p} -> file name without extension (e.g., \"document\" from \"document.txt\")\n\n{s} -> file extension (e.g., \"txt\" from \"document.txt\")\n\n{e} -> file extension with a dot (e.g., \".txt\" from \"document.txt\")\n\n{t} -> file\'s last modified time (formatted as \"yyyyMMdd_HHmmss\")\n\n{n} -> number increment (e.g., {0} -> 0, 1, 2…; {1} -> 1, 2, 3…)\n\n{zn} -> zero-padded number increment (e.g., {z0} -> 0, 1…; {zz0} -> 00, 01…; {zzz1} -> 001, 002…)]]></string>
+    <string name="batch_rename_info"><![CDATA[{p} -> file name without extension (e.g., \"document\" from \"document.txt\")\n\n{s} -> file extension (e.g., \"txt\" from \"document.txt\")\n\n{e} -> file extension with a dot (e.g., \".txt\" from \"document.txt\")\n\n{t} -> file\'s last modified time (formatted as \"yyyyMMdd_HHmmss\")\n\n{n} -> number increment (e.g., {0} -> 0, 1, 2â€¦; {1} -> 1, 2, 3â€¦)\n\n{zn} -> zero-padded number increment (e.g., {z0} -> 0, 1â€¦; {zz0} -> 00, 01â€¦; {zzz1} -> 001, 002â€¦)]]></string>
     <string name="syntax">Syntax</string>
     <string name="extension_with_dot">Extension with a dot</string>
     <string name="unable_to_move_to_recycle_bin">Error creating recycle bin folder</string>
@@ -224,8 +224,8 @@
     <string name="show_files_options_menu_on_long_click">Long click to show file\'s options menu</string>
     <string name="file_properties">File Properties</string>
     <string name="selection_properties">Selection Properties</string>
-    <string name="loading_properties">Loading Properties…</string>
-    <string name="analyzing_files">Analyzing files…</string>
+    <string name="loading_properties">Loading Propertiesâ€¦</string>
+    <string name="analyzing_files">Analyzing filesâ€¦</string>
     <string name="location">Location</string>
     <string name="type">Type</string>
     <string name="modified">Modified</string>
@@ -240,7 +240,7 @@
     <string name="total_size">Total Size</string>
     <string name="total_contents">Total Contents</string>
     <string name="not_available">N/A</string>
-    <string name="calculating">Calculating…</string>
+    <string name="calculating">Calculatingâ€¦</string>
     <string name="files_folders_count">%1$d files, %2$d folders</string>
     <string name="error_calculating">Error calculating</string>
     <string name="add_to_bookmarks">Add to bookmarks</string>
@@ -264,7 +264,7 @@
     <string name="task_failed">Task failed</string>
     <string name="task_paused">Task has been paused</string>
     <string name="task_completed">Task completed</string>
-    <string name="stopping">Stopping…</string>
+    <string name="stopping">Stoppingâ€¦</string>
     <string name="storage_access_required">Storage Access Required</string>
     <string name="storage_access_description">To manage your files, we need access to your device storage. This allows you to save, organize, and access your content seamlessly.</string>
     <string name="grant_access">Grant Access</string>
@@ -273,14 +273,14 @@
     <string name="invalid_pdf">Invalid PDF</string>
     <string name="failed_to_load_pdf">Failed to load PDF</string>
     <string name="page">Page %1$d</string>
-    <string name="loading_pdf">Loading PDF…</string>
+    <string name="loading_pdf">Loading PDFâ€¦</string>
     <string name="error">Error</string>
     <string name="go_back">Go Back</string>
     <string name="pdf_info">PDF Info</string>
     <string name="text_viewer">Text Viewer</string>
-    <string name="edit_with">Edit with…</string>
+    <string name="edit_with">Edit withâ€¦</string>
     <string name="no_app_found_to_edit_this_image">No app found to edit this image</string>
-    <string name="loading_image">Loading image…</string>
+    <string name="loading_image">Loading imageâ€¦</string>
     <string name="failed_to_load_image">Failed to load image</string>
     <string name="check_file_exists_and_try_again">Check if the file exists and try again</string>
     <string name="retry">Retry</string>
@@ -304,7 +304,7 @@
     <string name="great_no_errors_have_been_encountered">Great! No errors have been encountered</string>
     <string name="no_warnings_have_been_logged">No warnings have been logged</string>
     <string name="no_information_logs_have_been_recorded">No information logs have been recorded</string>
-    <string name="clearing_logs">Clearing logs…</string>
+    <string name="clearing_logs">Clearing logsâ€¦</string>
     <string name="unsupported_source_destination_combination">Unsupported source/destination combination</string>
     <string name="unknown_error">Unknown error</string>
     <string name="failed_to_copy_files_to_zip">Failed to copy files to zip</string>
@@ -328,7 +328,7 @@
     <string name="deleted_files">Deleted files</string>
     <string name="quick_path_navigation">Quick path navigation</string>
     <string name="task_running_notification_channel_name">Task Running Notification</string>
-    <string name="task_running_notification_text">Tasks are running…</string>
+    <string name="task_running_notification_text">Tasks are runningâ€¦</string>
     <string name="task_cannot_be_continued_from_current_state">Task cannot be continued from current state: %1$s</string>
     <string name="task_validation_failed">Task validation failed</string>
     <string name="task_is_not_in_pending_state">Task is not in pending state</string>
@@ -391,7 +391,7 @@
     <string name="by_extension">By Extension</string>
     <string name="in_content">In Content</string>
     <string name="max_results">Max Results: %1$s</string>
-    <string name="searching">Searching…</string>
+    <string name="searching">Searchingâ€¦</string>
     <string name="search_results">Results (%1$d)</string>
     <string name="expand">Expand</string>
     <string name="something_went_wrong">Something went wrong, check logs</string>
@@ -465,5 +465,9 @@
     <string name="remember_last_session">Remember last session</string>
     <string name="confirm_before_exit">Confirm before exiting the app</string>
 
+    <string name="convert_to_pdf">Convert to PDF</string>
+    <string name="convert_to_image">Convert to Image</string>
+    <string name="id_card_maker">ID Card Maker</string>
 </resources>
+
 
