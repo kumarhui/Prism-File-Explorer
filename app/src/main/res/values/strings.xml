@@ -195,6 +195,10 @@
     <string name="open_created_folder">Create and open</string>
     <string name="renaming">"Renaming"</string>
     <string name="batch_rename">Batch Rename</string>
+    <string name="print">Print</string>
+    <string name="send_to_whatsapp">Send to WhatsApp</string>
+    <string name="passport_photo_maker">Passport Photo Maker</string>
+    <string name="powershell">PowerShell</string>
     <string name="new_name">New Name</string>
     <string name="text_to_find">Text to find</string>
     <string name="replace_with">Replace with</string>
@@ -453,4 +457,6 @@
     <string name="close_tab_on_back_nav">Back navigation to close tabs</string>
     <string name="remember_last_session">Remember last session</string>
     <string name="confirm_before_exit">Confirm before exiting the app</string>
+
 </resources>
+

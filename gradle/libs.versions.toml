@@ -35,6 +35,9 @@ profileinstaller = "1.4.1"
 reorderable = "2.5.1"
 uiToolingPreviewAndroid = "1.9.0"
 zoomableImageCoil3 = "0.16.0"
+mlkitSubjectSegmentation = "16.0.0-beta1"
+fragment = "1.8.9"
+itext = "7.2.5"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -80,6 +83,9 @@ androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profi
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 androidx-ui-tooling-preview-android = { group = "androidx.compose.ui", name = "ui-tooling-preview-android", version.ref = "uiToolingPreviewAndroid" }
 zoomable-image-coil3 = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "zoomableImageCoil3" }
+mlkit-subject-segmentation = { module = "com.google.android.gms:play-services-mlkit-subject-segmentation", version.ref = "mlkitSubjectSegmentation" }
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
+itext-core-android = { module = "com.itextpdf.android:itext7-core-android", version.ref = "itext" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -87,5 +93,6 @@ jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = 
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-test = { id = "com.android.test", version.ref = "agp" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
+
 
 

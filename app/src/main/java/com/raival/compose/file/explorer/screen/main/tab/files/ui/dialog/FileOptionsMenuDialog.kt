@@ -1,4 +1,4 @@
-package com.raival.compose.file.explorer.screen.main.tab.files.ui.dialog
+﻿package com.raival.compose.file.explorer.screen.main.tab.files.ui.dialog
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -6,20 +6,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Message
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material.icons.rounded.Compress
 import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.DriveFileRenameOutline
 import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material.icons.rounded.FileCopy
 import androidx.compose.material.icons.rounded.FormatColorText
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Merge
+import androidx.compose.material.icons.rounded.Message
 import androidx.compose.material.icons.rounded.OpenInNewOff
+import androidx.compose.material.icons.rounded.Print
 import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +53,7 @@ import com.raival.compose.file.explorer.common.isNot
 import com.raival.compose.file.explorer.common.toJson
 import com.raival.compose.file.explorer.common.ui.BottomSheetDialog
 import com.raival.compose.file.explorer.common.ui.Space
+import com.raival.compose.file.explorer.customtools.preview.PrintPreviewDialog
 import com.raival.compose.file.explorer.screen.main.tab.files.FilesTab
 import com.raival.compose.file.explorer.screen.main.tab.files.holder.LocalFileHolder
 import com.raival.compose.file.explorer.screen.main.tab.files.holder.VirtualFileHolder
@@ -211,6 +218,77 @@ fun FileOptionsMenuDialog(
             Space(size = 6.dp)
             HorizontalDivider()
 
+            // Custom Tools
+
+            val printableExtensions = setOf(
+                "jpg",
+                "jpeg",
+                "png",
+                "webp",
+                "pdf"
+            )
+
+            val printableFiles = targetFiles.filter { fileHolder ->
+                fileHolder is LocalFileHolder &&
+                        fileHolder.file.extension.lowercase() in printableExtensions
+            }
+
+            if (printableFiles.isNotEmpty()) {
+                FileOption(
+                    Icons.Rounded.Print,
+                    stringResource(R.string.print)
+                ) {
+                    onDismissRequest()
+
+                    if (printableFiles.size == 1) {
+                        PrintPreviewDialog.show(
+                            context,
+                            (printableFiles.first() as LocalFileHolder).uniquePath
+                        )
+                    } else {
+                        PrintPreviewDialog.showMultiple(
+                            context,
+                            printableFiles.map {
+                                (it as LocalFileHolder).uniquePath
+                            }
+                        )
+                    }
+                }
+            }
+
+            FileOption(
+                Icons.Rounded.Message,
+                stringResource(R.string.send_to_whatsapp)
+            ) {
+                onDismissRequest()
+                // TODO: WhatsApp Preview
+            }
+
+            if (isMultipleSelection) {
+                FileOption(
+                    Icons.Rounded.DriveFileRenameOutline,
+                    stringResource(R.string.batch_rename)
+                ) {
+                    onDismissRequest()
+                    // TODO: Batch Rename Preview
+                }
+            }
+
+            FileOption(
+                Icons.Rounded.Badge,
+                stringResource(R.string.passport_photo_maker)
+            ) {
+                onDismissRequest()
+                // TODO: Passport Photo Maker
+            }
+
+            FileOption(
+                Icons.Rounded.Terminal,
+                stringResource(R.string.powershell)
+            ) {
+                onDismissRequest()
+                // TODO: PowerShell
+            }
             if (isSingleFolder) {
                 FileOption(
                     Icons.AutoMirrored.Rounded.OpenInNew,

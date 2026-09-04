@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
@@ -25,6 +25,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -89,6 +90,8 @@ dependencies {
     implementation(libs.coil.svg)
     implementation(libs.coil.video)
     implementation(libs.zoomable.image.coil3)
+    implementation(libs.mlkit.subject.segmentation)
+    implementation(libs.itext.core.android)
     implementation(libs.okio)
 
     // Third-Party UI/Compose Utilities
