@@ -1,4 +1,4 @@
-﻿package com.raival.compose.file.explorer.customtools.preview
+package com.raival.compose.file.explorer.customtools.preview
 
 import android.content.Context
 import android.content.Intent
@@ -43,6 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.raival.compose.file.explorer.customtools.layout.IdCardLayoutEngine
 import com.raival.compose.file.explorer.customtools.sharing.NokoPrintHelper
 import java.io.File
 
@@ -102,6 +107,23 @@ class ResultDialog : DialogFragment() {
                 manager,
                 TAG
             )
+        }
+
+        fun showMultiple(
+            context: Context,
+            outputPaths: List<String>,
+            title: String = "Results"
+        ) {
+            MultiResultDialog.showMultiple(context, outputPaths, title)
+        }
+
+        fun showIdCards(
+            context: Context,
+            sourcePaths: List<String>,
+            outputPaths: List<String>,
+            title: String = "ID Card Sheets"
+        ) {
+            MultiResultDialog.showIdCards(context, sourcePaths, outputPaths, title)
         }
     }
 
@@ -627,3 +649,208 @@ private fun ResultAction(
 }
 
 
+
+
+/** Public top-level Fragment so FragmentManager can recreate it safely. */
+class MultiResultDialog : DialogFragment() {
+    private var paths: List<String> = emptyList()
+    private var idSourcePaths: List<String> = emptyList()
+    private var titleText: String = "Results"
+    private var idLayout = IdCardLayoutEngine.Layout.STACKED
+    private var pagesContainer: android.widget.LinearLayout? = null
+    private var layoutButton: android.widget.Button? = null
+
+    companion object {
+        private const val ARG_PATHS = "paths"
+        private const val ARG_TITLE = "title"
+        private const val ARG_ID_SOURCES = "id_sources"
+        private const val ARG_ID_MODE = "id_mode"
+        private const val TAG = "CustomToolsMultiResultDialog"
+
+        fun showMultiple(context: Context, outputPaths: List<String>, title: String = "Results") {
+            showInternal(context, outputPaths, emptyList(), IdCardLayoutEngine.Layout.STACKED, title)
+        }
+
+        fun showIdCards(context: Context, sourcePaths: List<String>, outputPaths: List<String>, title: String = "ID Card Sheets") {
+            showInternal(context, outputPaths, sourcePaths, IdCardLayoutEngine.Layout.STACKED, title)
+        }
+
+        private fun showInternal(
+            context: Context,
+            outputPaths: List<String>,
+            sourcePaths: List<String>,
+            layout: IdCardLayoutEngine.Layout,
+            title: String
+        ) {
+            val activity = context as? FragmentActivity ?: return
+            if (activity.isFinishing || activity.isDestroyed || outputPaths.isEmpty()) return
+            val manager = activity.supportFragmentManager
+            if (manager.isStateSaved || manager.findFragmentByTag(TAG) != null) return
+            MultiResultDialog().apply {
+                arguments = Bundle().apply {
+                    putStringArrayList(ARG_PATHS, ArrayList(outputPaths))
+                    putStringArrayList(ARG_ID_SOURCES, ArrayList(sourcePaths))
+                    putInt(ARG_ID_MODE, layout.ordinal)
+                    putString(ARG_TITLE, title)
+                }
+            }.show(manager, TAG)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        paths = arguments?.getStringArrayList(ARG_PATHS)?.toList().orEmpty()
+        idSourcePaths = arguments?.getStringArrayList(ARG_ID_SOURCES)?.toList().orEmpty()
+        idLayout = IdCardLayoutEngine.Layout.entries.getOrElse(
+            arguments?.getInt(ARG_ID_MODE, 0) ?: 0
+        ) { IdCardLayoutEngine.Layout.STACKED }
+        titleText = arguments?.getString(ARG_TITLE) ?: "Results"
+    }
+
+    override fun onCreateView(inflater: android.view.LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        val context = requireContext()
+        val root = android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(18, 18, 18, 12)
+            setBackgroundColor(android.graphics.Color.WHITE)
+        }
+        root.addView(android.widget.TextView(context).apply {
+            text = titleText
+            textSize = 21f
+            setTextColor(android.graphics.Color.BLACK)
+            setPadding(0, 0, 0, 12)
+        })
+        val scroll = android.widget.ScrollView(context)
+        val pages = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }
+        pagesContainer = pages
+        rebuildPages(context)
+        scroll.addView(pages)
+        root.addView(scroll, android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        val buttons = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.HORIZONTAL; gravity = Gravity.END }
+        if (idSourcePaths.isNotEmpty()) {
+            layoutButton = android.widget.Button(context).apply {
+                text = if (idLayout == IdCardLayoutEngine.Layout.STACKED) "Top Row Layout" else "Stacked Layout"
+                setOnClickListener {
+                    idLayout = if (idLayout == IdCardLayoutEngine.Layout.STACKED) IdCardLayoutEngine.Layout.TOP_ROW else IdCardLayoutEngine.Layout.STACKED
+                    text = if (idLayout == IdCardLayoutEngine.Layout.STACKED) "Top Row Layout" else "Stacked Layout"
+                    rebuildIdCardPages(context)
+                }
+            }
+            buttons.addView(layoutButton)
+        }
+        buttons.addView(android.widget.Button(context).apply {
+            text = "Print All"
+            setOnClickListener { NokoPrintHelper.printMultiple(context, paths) }
+        })
+        buttons.addView(android.widget.Button(context).apply {
+            text = "Close"
+            setOnClickListener { dismiss() }
+        })
+        root.addView(buttons)
+        return root
+    }
+
+    private fun rebuildPages(context: Context) {
+        val pages = pagesContainer ?: return
+        pages.removeAllViews()
+
+        paths.forEachIndexed { index, path ->
+            val file = File(path)
+            if (!file.exists() || !file.isFile) return@forEachIndexed
+
+            pages.addView(android.widget.TextView(context).apply {
+                text = "Page ${index + 1} of ${paths.size}"
+                textSize = 14f
+                setTextColor(android.graphics.Color.DKGRAY)
+                setPadding(0, 6, 0, 6)
+            })
+
+            val image = android.widget.ImageView(context).apply {
+                setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                adjustViewBounds = true
+            }
+
+            pages.addView(
+                image,
+                android.widget.LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    bottomMargin = 14
+                }
+            )
+        }
+    }
+
+    private fun rebuildIdCardPages(context: Context) {
+        val activity = context as? FragmentActivity ?: return
+        if (idSourcePaths.isEmpty()) return
+
+        layoutButton?.isEnabled = false
+
+        activity.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val outputs = mutableListOf<String>()
+
+                idSourcePaths.chunked(2).forEach { group ->
+                    val bitmaps = group.mapNotNull { path ->
+                        BitmapFactory.decodeFile(path)
+                    }
+
+                    if (bitmaps.isEmpty()) return@forEach
+
+                    try {
+                        val sheet = IdCardLayoutEngine.createA4Sheet(bitmaps, idLayout)
+                        val directory = File(context.cacheDir, "custom_tools")
+
+                        if (!directory.exists() && !directory.mkdirs()) {
+                            return@forEach
+                        }
+
+                        val file = File(
+                            directory,
+                            "id_cards_${System.currentTimeMillis()}_${System.nanoTime()}.png"
+                        )
+
+                        file.outputStream().use { output ->
+                            sheet.compress(
+                                android.graphics.Bitmap.CompressFormat.PNG,
+                                100,
+                                output
+                            )
+                        }
+
+                        outputs.add(file.absolutePath)
+                        sheet.recycle()
+                    } finally {
+                        bitmaps.forEach { bitmap ->
+                            if (!bitmap.isRecycled) bitmap.recycle()
+                        }
+                    }
+                }
+
+                outputs
+            }
+
+            if (result.isNotEmpty()) {
+                paths = result
+                rebuildPages(context)
+            }
+
+            layoutButton?.isEnabled = true
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.let { window ->
+            window.setBackgroundDrawableResource(android.R.color.transparent)
+            window.setLayout(
+                (resources.displayMetrics.widthPixels * 0.94f).toInt(),
+                (resources.displayMetrics.heightPixels * 0.90f).toInt()
+            )
+            window.setGravity(Gravity.CENTER)
+        }
+    }
+}

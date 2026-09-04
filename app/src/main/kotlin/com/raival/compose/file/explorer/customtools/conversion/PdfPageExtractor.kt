@@ -1,119 +1,69 @@
 package com.raival.compose.file.explorer.customtools.conversion
 
-import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import java.io.File
 
 object PdfPageExtractor {
 
-    enum class Destination {
-        SAME_FOLDER,
-        NEW_FOLDER
-    }
-
-    data class Result(
-        val success: Boolean,
-        val outputDirectory: File?,
-        val pageFiles: List<File>,
-        val error: String? = null
-    )
+    enum class Destination { SAME_FOLDER, NEW_FOLDER }
 
     fun extract(
-        context: Context,
-        pdfPath: String,
-        destination: Destination,
-        newFolderName: String? = null
-    ): Result {
-        val pdfFile = File(pdfPath)
+        pdfPaths: List<String>,
+        destination: Destination
+    ): List<String> {
+        val outputs = mutableListOf<String>()
 
-        if (!pdfFile.exists() || !pdfFile.isFile) {
-            return Result(false, null, emptyList(), "PDF file not found")
-        }
-
-        if (!pdfFile.extension.equals("pdf", ignoreCase = true)) {
-            return Result(false, null, emptyList(), "Selected file is not a PDF")
-        }
-
-        val parent = pdfFile.parentFile
-            ?: return Result(false, null, emptyList(), "PDF parent folder not found")
-
-        val outputDirectory = when (destination) {
-            Destination.SAME_FOLDER -> parent
-            Destination.NEW_FOLDER -> {
-                val safeName = newFolderName
-                    ?.trim()
-                    ?.takeIf { it.isNotEmpty() }
-                    ?: "${pdfFile.nameWithoutExtension}_pages"
-
-                File(parent, safeName).apply {
-                    if (!exists()) mkdirs()
+        pdfPaths.map(::File)
+            .filter { it.exists() && it.isFile && it.extension.equals("pdf", true) }
+            .forEach { pdf ->
+                val outputDir = when (destination) {
+                    Destination.SAME_FOLDER -> pdf.parentFile ?: return@forEach
+                    Destination.NEW_FOLDER -> File(pdf.parentFile ?: return@forEach, "${pdf.nameWithoutExtension}_pages").also { it.mkdirs() }
                 }
-            }
-        }
 
-        return try {
-            ParcelFileDescriptor.open(
-                pdfFile,
-                ParcelFileDescriptor.MODE_READ_ONLY
-            ).use { descriptor ->
+                if (!outputDir.exists() && !outputDir.mkdirs()) return@forEach
 
-                PdfRenderer(descriptor).use { renderer ->
-                    val output = mutableListOf<File>()
-
+                val descriptor = ParcelFileDescriptor.open(pdf, ParcelFileDescriptor.MODE_READ_ONLY)
+                val renderer = PdfRenderer(descriptor)
+                try {
                     for (index in 0 until renderer.pageCount) {
                         renderer.openPage(index).use { page ->
-                            val width = (page.width * 2).coerceAtLeast(1)
-                            val height = (page.height * 2).coerceAtLeast(1)
+                            val scale = 2f
+                            val width = (page.width * scale).toInt().coerceAtLeast(1)
+                            val height = (page.height * scale).toInt().coerceAtLeast(1)
+                            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                            bitmap.eraseColor(Color.WHITE)
+                            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
 
-                            val bitmap = Bitmap.createBitmap(
-                                width,
-                                height,
-                                Bitmap.Config.ARGB_8888
-                            )
-
-                            bitmap.eraseColor(android.graphics.Color.WHITE)
-
-                            page.render(
-                                bitmap,
-                                null,
-                                null,
-                                PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
-                            )
-
-                            val file = File(
-                                outputDirectory,
-                                "page_${(index + 1).toString().padStart(3, '0')}.png"
-                            )
-
-                            file.outputStream().use { stream ->
-                                bitmap.compress(
-                                    Bitmap.CompressFormat.PNG,
-                                    100,
-                                    stream
-                                )
-                            }
-
+                            val output = uniqueFile(outputDir, "${pdf.nameWithoutExtension}_page_${String.format("%03d", index + 1)}.png")
+                            output.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                             bitmap.recycle()
-                            output += file
+                            outputs += output.absolutePath
                         }
                     }
-
-                    Result(
-                        success = true,
-                        outputDirectory = outputDirectory,
-                        pageFiles = output
-                    )
+                } finally {
+                    renderer.close()
+                    descriptor.close()
                 }
             }
-        } catch (e: Exception) {
-            Result(
-                success = false,
-                outputDirectory = outputDirectory,
-                pageFiles = emptyList(),
-                error = e.message ?: "Unable to extract PDF pages"
-            )
+
+        return outputs
+    }
+
+    private fun uniqueFile(directory: File, name: String): File {
+        val original = File(directory, name)
+        if (!original.exists()) return original
+
+        val base = original.nameWithoutExtension
+        val ext = original.extension
+        var i = 1
+        while (true) {
+            val candidate = File(directory, "${base}_$i.$ext")
+            if (!candidate.exists()) return candidate
+            i++
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿package com.raival.compose.file.explorer.customtools.ui
+package com.raival.compose.file.explorer.customtools.ui
 
 import android.app.Dialog
 import android.content.Context
@@ -10,6 +10,8 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.app.AlertDialog
+import android.graphics.drawable.ColorDrawable
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -28,10 +30,20 @@ import java.io.FileOutputStream
 
 object PassportPhotoConfigDialog {
 
-    fun show(
-        context: Context,
-        imagePath: String
-    ) {
+    fun show(context: Context, imagePath: String) {
+        show(context, listOf(imagePath))
+    }
+
+    fun show(context: Context, imagePaths: List<String>) {
+        val validPaths = imagePaths.filter { path ->
+            val file = File(path)
+            file.exists() && file.isFile && file.extension.lowercase() in setOf("jpg", "jpeg", "png", "webp")
+        }
+        if (validPaths.isEmpty()) return
+        showInternal(context, validPaths)
+    }
+
+    private fun showInternal(context: Context, imagePaths: List<String>) {
 
         val activity =
             context as? FragmentActivity
@@ -438,6 +450,13 @@ object PassportPhotoConfigDialog {
             createButton.text =
                 "Processing…"
 
+            val progress = AlertDialog.Builder(context)
+                .setMessage("Creating passport photo sheets…")
+                .setCancelable(false)
+                .create()
+            progress.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            progress.show()
+
             activity.lifecycleScope.launch {
 
                 val result =
@@ -447,7 +466,7 @@ object PassportPhotoConfigDialog {
 
                         generateSheet(
                             context = context,
-                            imagePath = imagePath,
+                            imagePaths = imagePaths,
                             rows = selectedRows,
                             background = selectedBg
                         )
@@ -458,6 +477,8 @@ object PassportPhotoConfigDialog {
 
                 createButton.text =
                     "Generate"
+
+                progress.dismiss()
 
                 if (result == null) {
 
@@ -472,11 +493,13 @@ object PassportPhotoConfigDialog {
 
                 dialog.dismiss()
 
-                ResultDialog.show(
-                    context,
-                    result.absolutePath,
-                    "Passport Photos"
-                )
+                if (result.isNotEmpty()) {
+                    ResultDialog.showMultiple(
+                        context,
+                        result,
+                        "Passport Photos (${result.size})"
+                    )
+                }
             }
         }
 
@@ -526,113 +549,38 @@ object PassportPhotoConfigDialog {
 
     private suspend fun generateSheet(
         context: Context,
-        imagePath: String,
+        imagePaths: List<String>,
         rows: Int,
         background: PassportBackground
-    ): File? {
-
-        val source =
-            BitmapFactory.decodeFile(
-                imagePath
-            ) ?: return null
-
-        var foreground: Bitmap? =
-            null
-
-        var processed: Bitmap? =
-            null
-
-        var sheet: Bitmap? =
-            null
-
-        return try {
-
-            foreground =
-                PassportPhotoProcessor
-                    .removeBackground(
-                        source
-                    )
-
-            if (foreground == null) {
-                return null
+    ): List<String> {
+        val outputs = mutableListOf<String>()
+        imagePaths.forEach { imagePath ->
+            val source = BitmapFactory.decodeFile(imagePath) ?: return@forEach
+            var foreground: Bitmap? = null
+            var processed: Bitmap? = null
+            var sheet: Bitmap? = null
+            try {
+                foreground = PassportPhotoProcessor.removeBackground(source)
+                if (foreground == null) return@forEach
+                processed = PassportPhotoProcessor.applyBackground(foreground, background)
+                val rowBitmaps = mutableMapOf<Int, Bitmap>()
+                rowBitmaps[(rows - 1).coerceIn(0, 5)] = processed
+                sheet = PassportPhotoLayoutEngine.createA4(rowBitmaps)
+                val directory = File(context.cacheDir, "custom_tools")
+                if (!directory.exists()) directory.mkdirs()
+                val output = File(directory, "passport_${System.currentTimeMillis()}_${System.nanoTime()}.png")
+                FileOutputStream(output).use { stream -> sheet.compress(Bitmap.CompressFormat.PNG, 100, stream) }
+                outputs += output.absolutePath
+            } catch (_: Exception) {
+                // Continue with remaining selected images.
+            } finally {
+                source.recycle()
+                foreground?.recycle()
+                processed?.recycle()
+                sheet?.recycle()
             }
-
-            processed =
-                PassportPhotoProcessor
-                    .applyBackground(
-                        foreground,
-                        background
-                    )
-
-            val rowBitmaps =
-                mutableMapOf<Int, Bitmap>()
-
-            /*
-             * "rows" means the selected physical row,
-             * NOT the number of rows to fill.
-             *
-             * Example:
-             * 1 -> photos in row 1
-             * 4 -> photos in row 4
-             * 6 -> photos in row 6
-             *
-             * The rows before it remain empty.
-             */
-            val selectedRowIndex =
-                (rows - 1).coerceIn(0, 5)
-
-            rowBitmaps[selectedRowIndex] =
-                processed
-
-            sheet =
-                PassportPhotoLayoutEngine
-                    .createA4(
-                        rowBitmaps
-                    )
-
-            val directory =
-                File(
-                    context.cacheDir,
-                    "custom_tools"
-                )
-
-            if (!directory.exists()) {
-                directory.mkdirs()
-            }
-
-            val output =
-                File(
-                    directory,
-                    "passport_${System.currentTimeMillis()}.png"
-                )
-
-            FileOutputStream(
-                output
-            ).use { stream ->
-
-                sheet.compress(
-                    Bitmap.CompressFormat.PNG,
-                    100,
-                    stream
-                )
-            }
-
-            output
-
-        } catch (_: Exception) {
-
-            null
-
-        } finally {
-
-            source.recycle()
-
-            foreground?.recycle()
-
-            processed?.recycle()
-
-            sheet?.recycle()
         }
+        return outputs
     }
 
     private fun roundedBackground(

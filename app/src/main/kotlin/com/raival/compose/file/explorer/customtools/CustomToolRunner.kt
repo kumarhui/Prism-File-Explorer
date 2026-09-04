@@ -1,9 +1,19 @@
-﻿package com.raival.compose.file.explorer.customtools
+package com.raival.compose.file.explorer.customtools
 
+import android.app.AlertDialog
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
+import android.view.Gravity
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.raival.compose.file.explorer.customtools.conversion.PdfConverter
 import com.raival.compose.file.explorer.customtools.layout.IdCardLayoutEngine
 import com.raival.compose.file.explorer.customtools.preview.ResultDialog
@@ -37,31 +47,61 @@ object CustomToolRunner {
             return
         }
 
-        val generated = mutableListOf<String>()
+        val activity = context as? FragmentActivity ?: return
+        val progress = showProgress(context, "Creating ID card sheets…")
 
-        valid.chunked(3).forEach { group ->
-            val bitmaps = group.mapNotNull { BitmapFactory.decodeFile(it) }
-            if (bitmaps.isEmpty()) return@forEach
+        activity.lifecycleScope.launch {
+            val generated = withContext(Dispatchers.IO) {
+                val outputs = mutableListOf<String>()
+                valid.chunked(2).forEach { group ->
+                    val bitmaps = group.mapNotNull { BitmapFactory.decodeFile(it) }
+                    if (bitmaps.isEmpty()) return@forEach
+                    try {
+                        val sheet = IdCardLayoutEngine.createA4Sheet(bitmaps)
+                        saveIdCardSheet(context, sheet)?.let(outputs::add)
+                        sheet.recycle()
+                    } finally {
+                        bitmaps.forEach { it.recycle() }
+                    }
+                }
+                outputs
+            }
 
-            try {
-                val sheet = IdCardLayoutEngine.createA4Sheet(bitmaps)
-                saveIdCardSheet(context, sheet)?.let(generated::add)
-                sheet.recycle()
-            } finally {
-                bitmaps.forEach { it.recycle() }
+            progress.dismiss()
+
+            if (generated.isNotEmpty()) {
+                ResultDialog.showIdCards(
+                    context,
+                    valid,
+                    generated,
+                    "ID Card Sheets (${generated.size})"
+                )
+            } else {
+                Toast.makeText(context, "Unable to create ID card sheets", Toast.LENGTH_SHORT).show()
             }
         }
+    }
 
-        if (generated.isNotEmpty()) {
-            ResultDialog.show(
-                context,
-                generated.first(),
-                if (generated.size == 1)
-                    "ID Card Sheet"
-                else
-                    "Created ${generated.size} ID Card Sheets"
-            )
+    private fun showProgress(context: Context, message: String): AlertDialog {
+        val container = android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(48, 32, 48, 32)
         }
+        container.addView(ProgressBar(context))
+        container.addView(TextView(context).apply {
+            text = message
+            textSize = 16f
+            setPadding(28, 0, 0, 0)
+        })
+        return AlertDialog.Builder(context)
+            .setView(container)
+            .setCancelable(false)
+            .create()
+            .also {
+                it.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+                it.show()
+            }
     }
 
     private fun saveIdCardSheet(context: Context, bitmap: Bitmap): String? {

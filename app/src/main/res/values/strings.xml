@@ -195,6 +195,8 @@
     <string name="open_created_folder">Create and open</string>
     <string name="renaming">"Renaming"</string>
     <string name="batch_rename">Batch Rename</string>
+
+
     <string name="print">Print With Nokoprint</string>
     <string name="send_to_whatsapp">Send to WhatsApp</string>
     <string name="passport_photo_maker">Passport Photo Maker</string>
@@ -207,6 +209,24 @@
     <string name="uppercase_all">UPPERCASE ALL</string>
     <string name="preview">Preview</string>
     <string name="rename_files">Rename Files</string>
+
+    <string name="convert_to_pdf">Convert to PDF</string>
+    <string name="convert_to_image">Convert to Image</string>
+    <string name="id_card_maker">ID Card Maker</string>
+
+    <string name="move_up">Move Up</string>
+    <string name="move_up_preview">Move Up Preview</string>
+    <string name="move_up_confirm">Move</string>
+    <string name="move_up_cancel">Cancel</string>
+    <string name="move_up_no_items">There are no items to move.</string>
+    <string name="move_up_failed">Some items could not be moved.</string>
+    <string name="move_up_success">Items moved successfully.</string>
+
+    <string name="extract_pdf_pages">Extract PDF Pages</string>
+    <string name="same_folder">Same folder</string>
+    <string name="new_folder">New folder</string>
+
+
     <string name="new_name">New Name</string>
     <string name="text_to_find">Text to find</string>
     <string name="replace_with">Replace with</string>
@@ -465,9 +485,6 @@
     <string name="remember_last_session">Remember last session</string>
     <string name="confirm_before_exit">Confirm before exiting the app</string>
 
-    <string name="convert_to_pdf">Convert to PDF</string>
-    <string name="convert_to_image">Convert to Image</string>
-    <string name="id_card_maker">ID Card Maker</string>
 </resources>
 
 
