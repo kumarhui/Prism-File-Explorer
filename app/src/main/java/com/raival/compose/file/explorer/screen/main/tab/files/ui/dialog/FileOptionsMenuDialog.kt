@@ -53,7 +53,9 @@ import com.raival.compose.file.explorer.common.isNot
 import com.raival.compose.file.explorer.common.toJson
 import com.raival.compose.file.explorer.common.ui.BottomSheetDialog
 import com.raival.compose.file.explorer.common.ui.Space
+import com.raival.compose.file.explorer.customtools.preview.CustomRenameDialog
 import com.raival.compose.file.explorer.customtools.preview.PrintPreviewDialog
+import com.raival.compose.file.explorer.customtools.preview.WhatsAppPreviewDialog
 import com.raival.compose.file.explorer.screen.main.tab.files.FilesTab
 import com.raival.compose.file.explorer.screen.main.tab.files.holder.LocalFileHolder
 import com.raival.compose.file.explorer.screen.main.tab.files.holder.VirtualFileHolder
@@ -261,16 +263,38 @@ fun FileOptionsMenuDialog(
                 stringResource(R.string.send_to_whatsapp)
             ) {
                 onDismissRequest()
-                // TODO: WhatsApp Preview
+
+                val whatsappFiles = printableFiles.map {
+                    (it as LocalFileHolder).uniquePath
+                }
+
+                if (whatsappFiles.isNotEmpty()) {
+                    WhatsAppPreviewDialog.show(
+                        context,
+                        whatsappFiles
+                    )
+                }
             }
 
             if (isMultipleSelection) {
                 FileOption(
                     Icons.Rounded.DriveFileRenameOutline,
-                    stringResource(R.string.batch_rename)
+                    stringResource(R.string.custom_rename)
                 ) {
                     onDismissRequest()
-                    // TODO: Batch Rename Preview
+
+                    val renameFiles = targetFiles
+                        .filterIsInstance<LocalFileHolder>()
+                        .map {
+                            it.uniquePath
+                        }
+
+                    if (renameFiles.isNotEmpty()) {
+                        CustomRenameDialog.show(
+                            context,
+                            renameFiles
+                        )
+                    }
                 }
             }
 

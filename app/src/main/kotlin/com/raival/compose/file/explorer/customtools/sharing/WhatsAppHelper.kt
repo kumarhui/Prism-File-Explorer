@@ -54,5 +54,58 @@ object WhatsAppHelper {
             false
         }
     }
+
+    fun shareMultiple(
+        context: Context,
+        paths: List<String>
+    ): Boolean {
+
+        val files = paths
+            .map { File(it) }
+            .filter { it.exists() && it.isFile }
+
+        if (files.isEmpty()) {
+            return false
+        }
+
+        return try {
+
+            val uris = ArrayList(
+                files.map { file ->
+                    FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.provider",
+                        file
+                    )
+                }
+            )
+
+            val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+
+                type = "*/*"
+
+                putParcelableArrayListExtra(
+                    Intent.EXTRA_STREAM,
+                    uris
+                )
+
+                addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
+                setPackage(
+                    "com.whatsapp"
+                )
+            }
+
+            context.startActivity(intent)
+
+            true
+
+        } catch (e: Exception) {
+
+            false
+        }
+    }
 }
 
