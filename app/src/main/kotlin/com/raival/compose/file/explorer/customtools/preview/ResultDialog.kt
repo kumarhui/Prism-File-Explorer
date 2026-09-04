@@ -1,4 +1,4 @@
-package com.raival.compose.file.explorer.customtools.preview
+﻿package com.raival.compose.file.explorer.customtools.preview
 
 import android.content.Context
 import android.content.Intent
@@ -1408,41 +1408,45 @@ private fun ResultBottomBar(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement =
-                Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
-            ResultAction(
-                modifier =
-                    Modifier.weight(1f),
-                icon = Icons.Default.Download,
-                label = "Save",
+            IconButton(
                 onClick = onSave
-            )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Download,
+                    contentDescription = "Save"
+                )
+            }
 
-            ResultAction(
-                modifier =
-                    Modifier.weight(1f),
-                icon = Icons.Default.Share,
-                label = "Share",
+            IconButton(
                 onClick = onShare
-            )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share"
+                )
+            }
 
-            ResultAction(
-                modifier =
-                    Modifier.weight(1f),
-                icon = Icons.Default.Print,
-                label = "Print",
+            IconButton(
                 onClick = onPrint
-            )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Print,
+                    contentDescription = "Print"
+                )
+            }
 
-            ResultAction(
-                modifier =
-                    Modifier.weight(1f),
-                icon = Icons.Default.OpenInNew,
-                label = "Open",
+            IconButton(
                 onClick = onOpen
-            )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.OpenInNew,
+                    contentDescription = "Open"
+                )
+            }
         }
     }
 }
@@ -1471,62 +1475,35 @@ private fun MultiResultBottomBar(
                     horizontal = 12.dp,
                     vertical = 10.dp
                 ),
-            horizontalArrangement =
-                Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
-            FilledTonalButton(
-                modifier =
-                    Modifier.weight(1f),
+            IconButton(
                 onClick = onSave
             ) {
-
                 Icon(
-                    Icons.Default.Download,
-                    contentDescription = null
+                    imageVector = Icons.Default.Download,
+                    contentDescription = "Save All"
                 )
-
-                Spacer(
-                    Modifier.width(6.dp)
-                )
-
-                Text("Save All")
             }
 
-            OutlinedButton(
-                modifier =
-                    Modifier.weight(1f),
+            IconButton(
                 onClick = onShare
             ) {
-
                 Icon(
-                    Icons.Default.Share,
-                    contentDescription = null
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share"
                 )
-
-                Spacer(
-                    Modifier.width(6.dp)
-                )
-
-                Text("Share")
             }
 
-            FilledTonalButton(
-                modifier =
-                    Modifier.weight(1f),
+            IconButton(
                 onClick = onPrint
             ) {
-
                 Icon(
-                    Icons.Default.Print,
-                    contentDescription = null
+                    imageVector = Icons.Default.Print,
+                    contentDescription = "Print"
                 )
-
-                Spacer(
-                    Modifier.width(6.dp)
-                )
-
-                Text("Print")
             }
         }
     }
