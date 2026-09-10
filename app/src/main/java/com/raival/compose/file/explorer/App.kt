@@ -1,4 +1,4 @@
-package com.raival.compose.file.explorer
+﻿package com.raival.compose.file.explorer
 
 import android.app.Application
 import android.content.Context
@@ -181,7 +181,7 @@ class App : Application(), coil3.SingletonImageLoader.Factory {
         return ImageLoader(context)
             .newBuilder()
             .addLastModifiedToFileCacheKey(true)
-            .crossfade(true)
+            .crossfade(false)
             .allowConversionToBitmap(true)
             .coroutineContext(Dispatchers.Default)
             .interceptorCoroutineContext(Dispatchers.Default)

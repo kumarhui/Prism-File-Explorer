@@ -1,29 +1,33 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ============================================================
+# Application
+# ============================================================
 
 -keep class com.raival.compose.file.explorer.** { *; }
+
+# ============================================================
+# TM4E / TextMate
+# ============================================================
+
 -keep class org.eclipse.tm4e.** { *; }
 -keep class org.joni.** { *; }
+
+# ============================================================
+# Existing project rules
+# ============================================================
+
 -keep class android.content.** { *; }
 -keep class com.android.apksig.** { *; }
 
 -keepnames interface * { *; }
+
+
+# ============================================================
+# PDFBox optional dependencies
+# ============================================================
+
+# PDFBox-Android optional JPEG2000 support.
+# jp2-android is intentionally not included.
+-dontwarn com.gemalto.jp2.**
+
+# PDFBox-Android optional SLF4J binding.
+-dontwarn org.slf4j.impl.StaticLoggerBinder

@@ -30,7 +30,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
+
+        create("releaseTest") {
+            initWith(getByName("release"))
+            isDebuggable = true
+            matchingFallbacks += listOf("release")
+            signingConfig = signingConfigs.getByName("debug")
+        }
+
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -51,16 +60,35 @@ android {
 
 dependencies {
 
+    // ============================================================
+    // XML / PDF
+    // ============================================================
 
+    // PDFBox
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+
+
+
+    // ============================================================
+    // Baseline Profile / Desugaring
+    // ============================================================
+
     "baselineProfile"(project(":baselineprofile"))
     implementation(libs.androidx.profileinstaller)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
+
+    // ============================================================
     // Local/File-based dependencies
+    // ============================================================
+
     implementation(files("libs/APKEditor.jar"))
 
+
+    // ============================================================
     // AndroidX - Core & Lifecycle
+    // ============================================================
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
@@ -68,26 +96,42 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.material)
 
+
+    // ============================================================
     // Jetpack Compose
+    // ============================================================
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.icons.extended)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.ui.tooling.preview.android)
 
+
+    // ============================================================
     // Other Jetpack & Android Libraries
+    // ============================================================
+
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.ui.compose)
     implementation(libs.androidx.palette.ktx)
 
+
+    // ============================================================
     // Sora Code Editor
+    // ============================================================
+
     implementation(libs.sora.editor)
     implementation(libs.sora.editor.language.java)
     implementation(libs.sora.editor.language.textmate)
 
+
+    // ============================================================
     // Image Loading - Coil
+    // ============================================================
+
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.coil.svg)
@@ -97,7 +141,11 @@ dependencies {
     implementation(libs.itext.core.android)
     implementation(libs.okio)
 
-    // Third-Party UI/Compose Utilities
+
+    // ============================================================
+    // Third-Party UI / Compose Utilities
+    // ============================================================
+
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.cascade.compose)
     implementation(libs.compose.swipebox)
@@ -106,7 +154,11 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.zoomable)
 
+
+    // ============================================================
     // Third-Party General Utilities
+    // ============================================================
+
     implementation(libs.apksig)
     implementation(libs.commons.net)
     implementation(libs.gson)

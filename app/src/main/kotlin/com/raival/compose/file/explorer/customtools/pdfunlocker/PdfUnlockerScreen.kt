@@ -54,11 +54,12 @@ fun PdfUnlockerScreen(
     var errorText by remember { mutableStateOf<String?>(null) }
     var matchedPassword by remember { mutableStateOf("") }
 
-    var unlockMode by remember { mutableStateOf(UnlockMode.SINGLE_PASS) }
+    // Defaults: Brute Force mode selected, 1950 to 2030 range
+    var unlockMode by remember { mutableStateOf(UnlockMode.AADHAAR_FORCE) }
     var singlePassword by remember { mutableStateOf("") }
     var nameInput by remember { mutableStateOf("") }
-    var yearStart by remember { mutableStateOf("") }
-    var yearEnd by remember { mutableStateOf("") }
+    var yearStart by remember { mutableStateOf("1950") }
+    var yearEnd by remember { mutableStateOf("2030") }
 
     // --- Core Logic: Detection ---
     val runFileCheck = { uri: Uri ->
@@ -177,8 +178,8 @@ fun PdfUnlockerScreen(
                                         }
                                     }
                                 } else {
-                                    val start = yearStart.toIntOrNull() ?: 1900
-                                    val end = yearEnd.toIntOrNull() ?: 2025
+                                    val start = yearStart.toIntOrNull() ?: 1950
+                                    val end = yearEnd.toIntOrNull() ?: 2030
                                     bruteForceJob = scope.launch {
                                         val range = if (start <= end) start..end else end..start
                                         val total = range.count().toFloat()

@@ -10,8 +10,9 @@ data class CustomToolsItem(
 )
 
 enum class ToolId {
-    ID_CARD,
     PASSPORT_PHOTO,
+    PDF_UNLOCKER,
+    ID_CARD,
     JUGANUA,
     COMPRESS_IMAGE,
     CROP_IMAGE,
@@ -20,5 +21,4 @@ enum class ToolId {
     WHATSAPP,
     NOKOPRINT
 }
-
 

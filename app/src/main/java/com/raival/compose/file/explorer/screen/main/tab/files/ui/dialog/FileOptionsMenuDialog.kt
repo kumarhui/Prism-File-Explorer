@@ -2,13 +2,18 @@
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Message
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.rounded.Badge
@@ -30,11 +35,11 @@ import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.Print
 import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -78,7 +84,6 @@ import com.raival.compose.file.explorer.screen.main.tab.files.task.CompressTask
 import com.raival.compose.file.explorer.screen.main.tab.files.task.CopyTask
 import com.raival.compose.file.explorer.screen.main.tab.files.ui.FileIcon
 import com.raival.compose.file.explorer.screen.main.tab.files.ui.ItemRow
-import java.io.File
 
 @Composable
 fun FileOptionsMenuDialog(
@@ -90,7 +95,6 @@ fun FileOptionsMenuDialog(
         val context = LocalContext.current
 
         val targetFiles = tab.selectedFiles.map { it.value }.toList()
-
         val targetContentHolder = tab.targetFile!!
 
         val selectedFilesCount = targetFiles.size
@@ -228,8 +232,7 @@ fun FileOptionsMenuDialog(
 
             Space(size = 6.dp)
             HorizontalDivider()
-
-            // Custom Tools
+            Space(size = 8.dp)
 
             val printableExtensions = setOf(
                 "jpg",
@@ -244,89 +247,137 @@ fun FileOptionsMenuDialog(
                         fileHolder.file.extension.lowercase() in printableExtensions
             }
 
-            if (printableFiles.isNotEmpty()) {
-                FileOption(
-                    Icons.Rounded.Print,
-                    stringResource(R.string.print)
-                ) {
-                    onDismissRequest()
+            val selectedImageFiles = targetFiles
+                .filterIsInstance<LocalFileHolder>()
+                .filter {
+                    it.file.extension.lowercase() in setOf(
+                        "jpg", "jpeg", "png", "webp"
+                    )
+                }
 
-                    if (printableFiles.size == 1) {
-                        PrintPreviewDialog.show(
-                            context,
-                            (printableFiles.first() as LocalFileHolder).uniquePath
-                        )
-                    } else {
-                        PrintPreviewDialog.showMultiple(
-                            context,
-                            printableFiles.map {
+            val selectedPdfFiles = targetFiles
+                .filterIsInstance<LocalFileHolder>()
+                .filter {
+                    it.file.extension.equals("pdf", ignoreCase = true)
+                }
+
+            // Quick Actions: Print, WhatsApp, Custom Rename, PDF Convert, and Open With
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 1. NokoPrint (Print)
+                if (printableFiles.isNotEmpty()) {
+                    SmallActionIcon(
+                        icon = Icons.Rounded.Print,
+                        contentDescription = stringResource(R.string.print),
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        onClick = {
+                            onDismissRequest()
+                            if (printableFiles.size == 1) {
+                                PrintPreviewDialog.show(
+                                    context,
+                                    (printableFiles.first() as LocalFileHolder).uniquePath
+                                )
+                            } else {
+                                PrintPreviewDialog.showMultiple(
+                                    context,
+                                    printableFiles.map {
+                                        (it as LocalFileHolder).uniquePath
+                                    }
+                                )
+                            }
+                        }
+                    )
+
+                    // 2. WhatsApp (Green)
+                    SmallActionIcon(
+                        icon = Icons.Rounded.Message,
+                        contentDescription = stringResource(R.string.send_to_whatsapp),
+                        iconTint = Color(0xFF25D366),
+                        containerColor = Color(0xFF25D366).copy(alpha = 0.12f),
+                        onClick = {
+                            onDismissRequest()
+                            val whatsappFiles = printableFiles.map {
                                 (it as LocalFileHolder).uniquePath
                             }
-                        )
-                    }
-                }
-            }
-
-            FileOption(
-                Icons.Rounded.Message,
-                stringResource(R.string.send_to_whatsapp)
-            ) {
-                onDismissRequest()
-
-                val whatsappFiles = printableFiles.map {
-                    (it as LocalFileHolder).uniquePath
-                }
-
-                if (whatsappFiles.isNotEmpty()) {
-                    WhatsAppPreviewDialog.show(
-                        context,
-                        whatsappFiles
-                    )
-                }
-            }
-
-            if (targetFiles.isNotEmpty()) {
-                FileOption(
-                    Icons.Rounded.DriveFileRenameOutline,
-                    stringResource(R.string.custom_rename)
-                ) {
-                    onDismissRequest()
-
-                    val renameFiles = targetFiles
-                        .filterIsInstance<LocalFileHolder>()
-                        .map {
-                            it.uniquePath
+                            if (whatsappFiles.isNotEmpty()) {
+                                WhatsAppPreviewDialog.show(
+                                    context,
+                                    whatsappFiles
+                                )
+                            }
                         }
-
-                    if (renameFiles.isNotEmpty()) {
-                        CustomRenameDialog.show(
-                            context,
-                            renameFiles
-                        )
-                    }
-                }
-            }
-            // PDF Unlocker — only for exactly one PDF file
-            val singlePdfFile =
-                selectedFilesCount == 1 &&
-                        targetContentHolder is LocalFileHolder &&
-                        targetContentHolder.file.extension.equals("pdf", ignoreCase = true)
-
-            if (singlePdfFile) {
-                FileOption(
-                    Icons.Default.LockOpen,
-                    stringResource(R.string.pdf_unlocker)
-                ) {
-                    onDismissRequest()
-
-                    PdfUnlockerDialog.show(
-                        context,
-                        Uri.fromFile(targetContentHolder.file)
                     )
                 }
-}
 
-            // Passport Photo Maker — only for image files, never PDFs
+                // 3. Custom Rename
+                if (targetFiles.isNotEmpty()) {
+                    SmallActionIcon(
+                        icon = Icons.Rounded.DriveFileRenameOutline,
+                        contentDescription = stringResource(R.string.custom_rename),
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        onClick = {
+                            onDismissRequest()
+                            val renameFiles = targetFiles
+                                .filterIsInstance<LocalFileHolder>()
+                                .map { it.uniquePath }
+
+                            if (renameFiles.isNotEmpty()) {
+                                CustomRenameDialog.show(
+                                    context,
+                                    renameFiles
+                                )
+                            }
+                        }
+                    )
+                }
+
+                // 4. Convert to PDF
+                if (selectedImageFiles.isNotEmpty() &&
+                    selectedPdfFiles.isEmpty() &&
+                    selectedImageFiles.size == targetFiles.size
+                ) {
+                    SmallActionIcon(
+                        icon = Icons.Rounded.PictureAsPdf,
+                        contentDescription = stringResource(R.string.convert_to_pdf),
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        onClick = {
+                            onDismissRequest()
+                            ImageConversionDialog.showPdf(
+                                context,
+                                selectedImageFiles.map { it.uniquePath }
+                            )
+                        }
+                    )
+                }
+
+                // 5. Open With
+                if (isSingleFile && targetContentHolder is LocalFileHolder) {
+                    SmallActionIcon(
+                        icon = Icons.AutoMirrored.Rounded.OpenInNew,
+                        contentDescription = stringResource(R.string.open_with),
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        onClick = {
+                            onDismissRequest()
+                            tab.toggleOpenWithDialog(true)
+                        }
+                    )
+                }
+            }
+
+            Space(size = 8.dp)
+            HorizontalDivider()
+
+            // 1. PASSPORT PHOTO MAKER
             val passportImageFiles = targetFiles
                 .filterIsInstance<LocalFileHolder>()
                 .filter {
@@ -343,7 +394,6 @@ fun FileOptionsMenuDialog(
                     stringResource(R.string.passport_photo_maker)
                 ) {
                     onDismissRequest()
-
                     PassportPhotoConfigDialog.show(
                         context,
                         passportImageFiles.map { it.uniquePath }
@@ -351,62 +401,26 @@ fun FileOptionsMenuDialog(
                 }
             }
 
-            // Convert to PDF — only when selected files are images
-            val selectedImageFiles = targetFiles
-                .filterIsInstance<LocalFileHolder>()
-                .filter {
-                    it.file.extension.lowercase() in setOf(
-                        "jpg", "jpeg", "png", "webp"
-                    )
-                }
+            // 2. PDF UNLOCKER (Single PDF file)
+            val singlePdfFile =
+                selectedFilesCount == 1 &&
+                        targetContentHolder is LocalFileHolder &&
+                        targetContentHolder.file.extension.equals("pdf", ignoreCase = true)
 
-            val selectedPdfFiles = targetFiles
-                .filterIsInstance<LocalFileHolder>()
-                .filter {
-                    it.file.extension.equals("pdf", ignoreCase = true)
-                }
-
-            if (selectedImageFiles.isNotEmpty() &&
-                selectedPdfFiles.isEmpty() &&
-                selectedImageFiles.size == targetFiles.size
-            ) {
+            if (singlePdfFile) {
                 FileOption(
-                    Icons.Rounded.PictureAsPdf,
-                    stringResource(R.string.convert_to_pdf)
+                    Icons.Default.LockOpen,
+                    stringResource(R.string.pdf_unlocker)
                 ) {
                     onDismissRequest()
-
-                    ImageConversionDialog.showPdf(
+                    PdfUnlockerDialog.show(
                         context,
-                        selectedImageFiles.map { it.uniquePath }
+                        Uri.fromFile(targetContentHolder.file)
                     )
                 }
             }
 
-            // Convert to Image — only when selected files are PDFs
-            val selectedPdfFilesForImage = targetFiles
-                .filterIsInstance<LocalFileHolder>()
-                .filter {
-                    it.file.extension.equals("pdf", ignoreCase = true)
-                }
-
-            if (selectedPdfFilesForImage.isNotEmpty() &&
-                selectedPdfFilesForImage.size == targetFiles.size
-            ) {
-                FileOption(
-                    Icons.Rounded.Image,
-                    stringResource(R.string.convert_to_image)
-                ) {
-                    onDismissRequest()
-
-                    PdfPageExtractionDialog.show(
-                        context,
-                        selectedPdfFilesForImage.map { it.uniquePath }
-                    )
-                }
-            }
-
-            // ID Card Maker — only for image files, never PDFs
+            // 3. ID CARD MAKER
             val idCardImageFiles = targetFiles
                 .filterIsInstance<LocalFileHolder>()
                 .filter {
@@ -423,10 +437,31 @@ fun FileOptionsMenuDialog(
                     stringResource(R.string.id_card_maker)
                 ) {
                     onDismissRequest()
-
                     CustomToolRunner.createIdCards(
                         context,
                         idCardImageFiles.map { it.uniquePath }
+                    )
+                }
+            }
+
+            // Convert to Image (PDFs to Image)
+            val selectedPdfFilesForImage = targetFiles
+                .filterIsInstance<LocalFileHolder>()
+                .filter {
+                    it.file.extension.equals("pdf", ignoreCase = true)
+                }
+
+            if (selectedPdfFilesForImage.isNotEmpty() &&
+                selectedPdfFilesForImage.size == targetFiles.size
+            ) {
+                FileOption(
+                    Icons.Rounded.Image,
+                    stringResource(R.string.convert_to_image)
+                ) {
+                    onDismissRequest()
+                    PdfPageExtractionDialog.show(
+                        context,
+                        selectedPdfFilesForImage.map { it.uniquePath }
                     )
                 }
             }
@@ -439,16 +474,6 @@ fun FileOptionsMenuDialog(
                     onDismissRequest()
                     tab.requestNewTab(FilesTab(targetContentHolder))
                     tab.unselectAllFiles()
-                }
-            }
-
-            if (isSingleFile && targetContentHolder is LocalFileHolder) {
-                FileOption(
-                    Icons.AutoMirrored.Rounded.OpenInNew,
-                    stringResource(R.string.open_with)
-                ) {
-                    onDismissRequest()
-                    tab.toggleOpenWithDialog(true)
                 }
             }
 
@@ -564,6 +589,37 @@ fun FileOptionsMenuDialog(
 }
 
 @Composable
+private fun SmallActionIcon(
+    icon: ImageVector,
+    contentDescription: String,
+    iconTint: Color,
+    containerColor: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        shape = CircleShape,
+        color = containerColor,
+        tonalElevation = 2.dp
+    ) {
+        Box(
+            modifier = Modifier.padding(10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = iconTint,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+    }
+}
+
+@Composable
 fun FileOption(
     icon: ImageVector,
     text: String,
@@ -573,9 +629,7 @@ fun FileOption(
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable {
-                onClick()
-            }
+            .clickable { onClick() }
             .padding(vertical = 16.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -592,8 +646,3 @@ fun FileOption(
         )
     }
 }
-
-
-
-
-

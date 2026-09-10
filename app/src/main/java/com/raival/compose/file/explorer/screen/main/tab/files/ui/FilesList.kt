@@ -1,4 +1,4 @@
-package com.raival.compose.file.explorer.screen.main.tab.files.ui
+﻿package com.raival.compose.file.explorer.screen.main.tab.files.ui
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
@@ -193,7 +193,10 @@ fun FilesListColumns(tab: FilesTab) {
     ) {
         itemsIndexed(
             tab.activeFolderContent,
-            key = { _, item -> item.uid }
+            key = { _, item -> item.uid },
+            contentType = { _, item ->
+                if (item.isFolder) "folder" else "file"
+            }
         ) { index, item ->
             val currentItemPath = item.uniquePath
             val isAlreadySelected = tab.selectedFiles.containsKey(currentItemPath)
@@ -227,7 +230,10 @@ fun FilesListGrid(tab: FilesTab) {
     ) {
         itemsIndexed(
             tab.activeFolderContent,
-            key = { _, item -> item.uid }
+            key = { _, item -> item.uid },
+            contentType = { _, item ->
+                if (item.isFolder) "folder" else "file"
+            }
         ) { index, item ->
             val currentItemPath = item.uniquePath
             val isAlreadySelected = tab.selectedFiles.containsKey(currentItemPath)
